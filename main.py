@@ -3,6 +3,7 @@ import numpy as np
 from PIL import ImageGrab
 import win32gui
 import math
+from input_controller import Input
 
 detector = cv2.dnn.readNet("frozen_east_text_detection.pb")
 recognizer = cv2.dnn.readNet("crnn.onnx")
@@ -105,9 +106,14 @@ for(windows_handle_id, win_text) in open_windows:
     if "DeSmuME" in win_text:
         desmume_handle = windows_handle_id
 
+# detector setup
 inWidth = 320
 inHeight = 320
+output_layer = []
+output_layer.append("feature_fusion/Conv_7/Sigmoid")
+output_layer.append("feature_fusion/concat_3")
 
+# recognizer setup
 tickmeter = cv2.TickMeter()
 
 while True:
@@ -116,19 +122,13 @@ while True:
     imgWidth = position[2] - position[0]
     imgHeight = position[3] - position[1]
     #get lower half of DS screen
-    newPos = (position[0], position[1]+(imgHeight / 2), position[2], position[3])
-    
+    newPos = (position[0], position[1] + (imgHeight / 2), position[2], position[3])
+    # newPos = (position[0], position[1], position[2], position[3])
     screenshot = ImageGrab.grab(newPos)
     screenshot = np.array(screenshot)
     screenshot = cv2.cvtColor(screenshot, cv2.COLOR_RGB2BGR)
 
-    
-
     image_blob = cv2.dnn.blobFromImage(screenshot, 1.0, (inWidth, inHeight), (123.68, 116.78, 103.94),  swapRB=True, crop=False)
-
-    output_layer = []
-    output_layer.append("feature_fusion/Conv_7/Sigmoid")
-    output_layer.append("feature_fusion/concat_3")
 
     detector.setInput(image_blob)
     output = detector.forward(output_layer)
@@ -145,9 +145,14 @@ while True:
     rW = width_ / float(inWidth)
     rH = height_ / float(inHeight)
 
+    inputs = []
+
     for i in indices:
         # get 4 corners of the rotated rect
+        boundingBoxPoints = []
         vertices = cv2.boxPoints(boxes[i[0]])
+        for x in vertices[0:4]:
+            boundingBoxPoints.append(x[0:2])
         # scale the bounding box coordinates based on the respective ratios
         for j in range(4):
             vertices[j][0] *= rW
@@ -168,7 +173,6 @@ while True:
 
         # decode the result into text
         wordRecognized = decodeText(result)
-        # print(wordRecognized)
         cv2.putText(screenshot, wordRecognized, (int(vertices[1][0]), int(vertices[1][1])), cv2.FONT_HERSHEY_SIMPLEX,
                     0.5, (255, 0, 0))
 
@@ -177,5 +181,15 @@ while True:
             p2 = (vertices[(j + 1) % 4][0], vertices[(j + 1) % 4][1])
             cv2.line(screenshot, p1, p2, (0, 255, 0), 1)
 
+        # tempMove = Inputs.MoveInput(wordRecognized, boundingBoxPoints)
+        # inputs[tempMove.moveText] = tempMove.boundingBoxPoints
+        inputs.append(Input(wordRecognized, boundingBoxPoints, newPos[1] - position[1]))
+
+    print(*inputs)
+    
+    for x in inputs:
+        if x.moveText == "fight":
+            x.clickInput(desmume_handle)
+
     cv2.imshow('frame', screenshot)
-    cv2.waitKey(100)
+    cv2.waitKey(15)
