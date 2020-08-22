@@ -3,16 +3,26 @@ import numpy as np
 from PIL import ImageGrab
 import win32gui
 import math
-from input_controller import Input
-import window_handle_util
-from text_detection_and_recognition import TextDetectionAndRecognition
+from InputController import Input
+import WindowHandleUtil
+from TextDetectionAndRecognition import TextDetectionAndRecognition
+from LevenshteinDistance import LevenshteinDistanceService
 
-emulator_handle = window_handle_util.getWindowHandleFromTitle("DeSmuME")
+movesFile = "pokemon_gen5_moves.txt"
+
+emulatorHandle = WindowHandleUtil.getWindowHandleFromTitle("DeSmuME")
 textInterpreter = TextDetectionAndRecognition()
+pokemonMoves = [line.rstrip('\n').lower() for line in open(movesFile)]
+
+maxLength = 0
+for word in pokemonMoves:
+    if len(word) > maxLength:
+        maxLength = len(word)
 
 while True:
-    position = win32gui.GetWindowRect(emulator_handle)
+    position = win32gui.GetWindowRect(emulatorHandle)
     imgHeight = position[3] - position[1]
+    imgWidth = position[2] - position[0]
     positionHeightOffset = position[1]
     position = (position[0], positionHeightOffset + imgHeight / 2, position[2], position[3])
     screenshot = ImageGrab.grab(position)
@@ -28,15 +38,22 @@ while True:
         wordRecognized = textInterpreter.getDetectedText(screenshot, i, boundingBoxPoints)
         textInterpreter.drawBoundingBoxesAndText(screenshot, wordRecognized)
 
-        # tempMove = Inputs.MoveInput(wordRecognized, boundingBoxPoints)
-        # inputs[tempMove.moveText] = tempMove.boundingBoxPoints
         inputs.append(Input(wordRecognized, boundingBoxPoints, position[1] - positionHeightOffset))
+    
+    scaledYThreshold = imgHeight * 0.02
+    scaledXThreshold = imgWidth * 0.1
+
+    for x in list(inputs):
+        x.checkForTextProximityWithinThresholds(inputs, scaledYThreshold, scaledXThreshold)
+
+    for x in list(inputs):
+        distanceFromCancel = LevenshteinDistanceService().LevenshteinDistanceMatrix(x.moveText, "cancel")[len(x.moveText)-1][5]
+        containsPP = " pp" in x.moveText or "pp " in x.moveText or ("pp" in x.moveText and len(x.moveText) == 2)
+        if distanceFromCancel < 3 or sum(c.isdigit() for c in x.moveText) > 1 or containsPP:
+                inputs.remove(x)
+        x.autoCorrectText(maxLength, len(pokemonMoves), pokemonMoves)
 
     print(*inputs)
-    
-    for x in inputs:
-        if x.moveText == "earth":
-            x.clickInput(emulator_handle)
 
     cv2.imshow('frame', screenshot)
-    cv2.waitKey(5)
+    cv2.waitKey(1)
