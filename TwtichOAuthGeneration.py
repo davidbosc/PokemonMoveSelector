@@ -19,7 +19,7 @@ def getAccessTokenFromUrl(url, window):
 
 app = QtWidgets.QApplication(sys.argv)
 window = QWebEngineView()
-window.title = "Pokemon Move Selector: Authorize"
+window.setWindowTitle("Pokemon Move Selector: Authorize")
 window.load(QtCore.QUrl('https://id.twitch.tv/oauth2/authorize?response_type=token&client_id=v66bfhh102a1y1860k4ilhyhi7ulms&redirect_uri=http://localhost:8080&scope=chat:read&force_verify=true'))
 window.showMaximized()
 window.urlChanged.connect(lambda x: getAccessTokenFromUrl(x, window))
