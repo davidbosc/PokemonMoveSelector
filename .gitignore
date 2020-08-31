@@ -5,3 +5,4 @@ frozen_east_text_detection.*
 main.spec
 generate_dist.bat
 *.onnx
+.vscode

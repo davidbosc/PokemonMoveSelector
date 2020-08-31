@@ -5,8 +5,8 @@ import numpy as np
 class TextDetectionAndRecognition():
 
     def __init__(self):
-        self.detector = cv2.dnn.readNet("frozen_east_text_detection.pb")
-        self.recognizer = cv2.dnn.readNet("crnn.onnx")
+        self.detector = cv2.dnn.readNet("./frozen_east_text_detection.pb")
+        self.recognizer = cv2.dnn.readNet("./crnn.onnx")
         # detector setup
         self.inWidth = 320
         self.inHeight = 320
