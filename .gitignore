@@ -1,8 +1,7 @@
 dist
 __pycache__
 build
-frozen_east_text_detection.*
+frozen_east_text_detection.tar.gz
 main.spec
 generate_dist.bat
-*.onnx
 .vscode

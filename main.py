@@ -10,7 +10,7 @@ from LevenshteinDistance import LevenshteinDistanceService
 import TwtichOAuthGeneration
 import CancelAuthorizationCallback
 
-movesFile = "pokemon_gen5_moves.txt"
+movesFile = "./movelists/pokemon_gen5_moves.txt"
 
 emulatorHandle = WindowHandleUtil.getWindowHandleFromTitle("DeSmuME")
 textInterpreter = TextDetectionAndRecognition()
