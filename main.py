@@ -7,6 +7,8 @@ from InputController import Input
 import WindowHandleUtil
 from TextDetectionAndRecognition import TextDetectionAndRecognition
 from LevenshteinDistance import LevenshteinDistanceService
+import TwtichOAuthGeneration
+import CancelAuthorizationCallback
 
 movesFile = "pokemon_gen5_moves.txt"
 
@@ -18,6 +20,12 @@ maxLength = 0
 for word in pokemonMoves:
     if len(word) > maxLength:
         maxLength = len(word)
+
+access_token = ''
+CancelAuthorizationCallback.StartCallbackServerThread()
+access_token = TwtichOAuthGeneration.RenderAuthorizeUI()
+
+print(access_token)
 
 while True:
     position = win32gui.GetWindowRect(emulatorHandle)
