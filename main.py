@@ -9,6 +9,7 @@ from TextDetectionAndRecognition import TextDetectionAndRecognition
 from LevenshteinDistance import LevenshteinDistanceService
 import TwtichOAuthGeneration
 import CancelAuthorizationCallback
+import TwitchChatScanner
 
 movesFile = "./movelists/pokemon_gen5_moves.txt"
 
@@ -25,7 +26,9 @@ access_token = ''
 CancelAuthorizationCallback.StartCallbackServerThread()
 access_token = TwtichOAuthGeneration.RenderAuthorizeUI()
 
-print(access_token)
+twitch_username = ''
+twitch_username = input()
+TwitchChatScanner.StartTwitchChatScanner(twitch_username, access_token)
 
 while True:
     position = win32gui.GetWindowRect(emulatorHandle)
@@ -61,7 +64,7 @@ while True:
                 inputs.remove(x)
         x.autoCorrectText(maxLength, len(pokemonMoves), pokemonMoves)
 
-    print(*inputs)
+    # print(*inputs)
 
     cv2.imshow('frame', screenshot)
     cv2.waitKey(1)
